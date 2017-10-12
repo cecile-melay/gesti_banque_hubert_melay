@@ -9,6 +9,9 @@ import entity.CompteBancaire;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.ejb.LocalBean;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 /**
  *
@@ -17,6 +20,9 @@ import javax.ejb.LocalBean;
 @Stateless
 @LocalBean
 public class GestionnaireDeCompteBancaire {
+    
+     @PersistenceContext(unitName = "GestiBanque-ejbPU")  
+    private EntityManager em; 
     
     public void creerComptesTest() {  
    creerCompte(new CompteBancaire("John Lennon", 150000));  
@@ -33,6 +39,15 @@ public class GestionnaireDeCompteBancaire {
     }
 
     public List<CompteBancaire> getAllComptes() {
-        return null;
+        Query query = em.createNamedQuery("CompteBancaire.findAll");  
+        return query.getResultList(); 
+    }
+    
+    public CompteBancaire update(CompteBancaire compteBancaire) {  
+        return em.merge(compteBancaire);  
+    }  
+  
+    public void persist(Object object) {  
+        em.persist(object);  
     }
 }
