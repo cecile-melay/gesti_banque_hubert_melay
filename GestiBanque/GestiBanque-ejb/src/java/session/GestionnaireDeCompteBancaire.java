@@ -20,7 +20,7 @@ import javax.persistence.Query;
 @Stateless
 @LocalBean
 public class GestionnaireDeCompteBancaire {
-    
+        
      @PersistenceContext(unitName = "GestiBanque-ejbPU")  
     private EntityManager em; 
     
@@ -31,9 +31,10 @@ public class GestionnaireDeCompteBancaire {
    creerCompte(new CompteBancaire("Georges Harrisson", 100000));  
 }  
 
+
     // Add business logic below. (Right-click in editor and choose
     // "Insert Code > Add Business Method")
-
+    
     private void creerCompte(CompteBancaire compteBancaire) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -50,4 +51,5 @@ public class GestionnaireDeCompteBancaire {
     public void persist(Object object) {  
         em.persist(object);  
     }
+
 }

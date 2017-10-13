@@ -17,13 +17,14 @@ import javax.persistence.Id;
  */
 @Entity
 public class CompteBancaire implements Serializable {
+    
+    String nom;
+    int solde;
 
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    String nom;
-    int solde;
 
     public Long getId() {
         return id;
@@ -57,7 +58,8 @@ public class CompteBancaire implements Serializable {
     public String toString() {
         return "entity.CompteBancaire[ id=" + id + " ]";
     }
-
+    
+    
     public CompteBancaire(String nom, int solde) {
         this.nom = nom;
         this.solde = solde;
@@ -76,4 +78,6 @@ public class CompteBancaire implements Serializable {
         }
     }
 
+
+    
 }
