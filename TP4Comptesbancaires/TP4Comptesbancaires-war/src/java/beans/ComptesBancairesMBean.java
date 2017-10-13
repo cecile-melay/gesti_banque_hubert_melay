@@ -6,19 +6,24 @@
 package beans;
 
 import entities.CompteBancaire;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ViewScoped;
+import javax.faces.view.ViewScoped;
+import javax.inject.Named;
+import org.primefaces.model.LazyDataModel;
+import org.primefaces.model.SortOrder;
 import sessions.GestionnaireDeComptebancaires;
 
 /**
  *
  * @author mbuffa
  */
-@ManagedBean
+@Named
 @ViewScoped
-public class ComptesBancairesMBean {
+public class ComptesBancairesMBean implements Serializable {
 
     @EJB
     private GestionnaireDeComptebancaires gc;
@@ -31,6 +36,40 @@ public class ComptesBancairesMBean {
     private int id2;
     private double montantTransfert;
     private String message;
+    private List<CompteBancaire> listeDesComptes;
+    private LazyDataModel lazyModelComptesBancaires;
+
+    public ComptesBancairesMBean() {
+        // On creer une instance du LazyDataModel
+        lazyModelComptesBancaires
+                = new LazyDataModel<CompteBancaire>() {
+
+                    @Override
+                    public List<CompteBancaire> load(int start, int nb, 
+                            String nomChamp, SortOrder so, 
+                            Map map) {
+                        // A ecrire
+                        System.out.println("### load : start ="+ start + " nb = "+ nb + "nom colonne = " + nomChamp);
+                        if(nomChamp != null) {
+                            if(nomChamp.equals("nom")) {
+                                // Il faut trier
+                                System.out.println("Tri: champ= " + 
+                                        nomChamp + " ordre: " +so.name());
+                                return gc.getComptesTriesParNom(start, nb, so.name());
+                            }
+                        } else {
+                            // Juste la pagination, pas de tri, de filtre
+                            return gc.getComptes(start, nb); 
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public int getRowCount() {
+                        return (int) gc.getNombreDeComptes();
+                    }
+                };
+    }
 
     public String getMessage() {
         return message;
@@ -162,30 +201,41 @@ public class ComptesBancairesMBean {
         this.idCompteACrediter = idCompteACrediter;
     }
 
-    /**
-     * Creates a new instance of ComptesBancairesMBean
-     */
-    public ComptesBancairesMBean() {
-    }
+   
 
     // MODELES / PROPRIETES
     // Pour affichage dans la datatable
     public List<CompteBancaire> getComptesBancaires() {
-        return gc.findAll();
+        if (listeDesComptes == null) {
+            refreshListeDesComptes();
+        }
+        return listeDesComptes;
+    }
+
+    public LazyDataModel getLazyCompteBancaires() {
+        return lazyModelComptesBancaires;
+    }
+
+    private void refreshListeDesComptes() {
+        listeDesComptes = gc.findAll();
+        System.out.println("On FAIT FINDALL");
     }
 
     // METHODES D'ACTION
     public void creerComptesDeTest() {
         System.out.println("### COMPTES CREES ###");
         gc.creerComptesDeTest();
+        refreshListeDesComptes();
     }
 
     public void crediterUnCompte() {
         gc.crediterUnCompte(idCompteACrediter, montantACrediter);
+        refreshListeDesComptes();
     }
 
     public void debiterUnCompte() {
         gc.debiterUnCompte(idCompteADebiter, montantADebiter);
+        refreshListeDesComptes();
     }
 
     public void transferer() {
@@ -194,10 +244,18 @@ public class ComptesBancairesMBean {
         //gc.crediterUnCompte(id2, montantTransfert);
         try {
             gc.transferer(id1, id2, montantTransfert);
-        } catch(Exception e) {
+            message = "Transfert OK!";
+            refreshListeDesComptes();
+        } catch (Exception e) {
             message = "Transfert impossible, pas assez d'argent";
             System.out.println("### PAS ASSEZ d'argent");
         }
+    }
+
+    public void supprimerCompte(CompteBancaire c) {
+        System.out.println("### Suppression du compte " + c.getId());
+        gc.supprimerCompte(c);
+        refreshListeDesComptes();
     }
 
 }
