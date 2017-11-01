@@ -6,11 +6,16 @@
 package entities;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.ejb.EJBException;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 
 /**
  *
@@ -25,7 +30,11 @@ public class CompteBancaire implements Serializable {
     private int id;
     private String nomProprietaire;
     private double solde;
-
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @OrderBy("dateoperation ASC")
+    private List<OperationBancaire> listeOperations = new ArrayList();
+    String description;
+    
     public CompteBancaire() {
 
     }
@@ -33,8 +42,16 @@ public class CompteBancaire implements Serializable {
     public CompteBancaire(String nom, double solde) {
         this.nomProprietaire = nom;
         this.solde = solde;
+        
+        // Operation = création
+        addOperation("Création du compte", solde);
     }
 
+    public void addOperation(String description, double montant) {
+        OperationBancaire op = new OperationBancaire(description, montant);
+        listeOperations.add(op);
+    }
+    
     /**
      * Get the value of solde
      *
@@ -79,8 +96,17 @@ public class CompteBancaire implements Serializable {
         this.id = id;
     }
 
+    public String getNomProprietaire() {
+        return nomProprietaire;
+    }
+
+    public List<OperationBancaire> getListeOperations() {
+        return listeOperations;
+    }
+
     public void crediter(double montant) {
         solde += montant;
+        addOperation("Crédit de " + montant, montant);
     }
 
     public void debiter(double montant) {
@@ -88,6 +114,7 @@ public class CompteBancaire implements Serializable {
             throw new EJBException();
         } else {
             solde -= montant;
+            addOperation("Débit de " + montant, montant);
         }
     }
 
